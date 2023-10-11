@@ -55,6 +55,9 @@ def checkAction(self: Solver, action: str) -> bool:
         case 'help':
             print(helpMenu)
 
+        case 'test':
+            print('lmao')
+
         case _:
             print('Invalid action, please try again.')
 
