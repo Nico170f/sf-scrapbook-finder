@@ -1,10 +1,23 @@
-from sf.mouse.getMousePostion import getMousePosition
 
-userActions: list[str] = ['help', 'h', 'start', 's']
+from sf.getMousePostion import getMousePosition
+from sf.itemFinder import ItemFinder
+
+
+userActions: list[str] = [
+    'help', 'h',
+    'mousepos', 'mp',
+    'start', 's'
+]
+
 helpMenu = """
-> This is the help menu
-> Newline 
-> Another newline 
+> help | h
+    - Displays this menu
+    
+> mousepos | mp
+    - Gets the x,y positions for the solving "window"
+    
+> start | s
+    - Start the item finder
 """
 mousePositionInstructions = """
 > First click should be the top left corner of the area you want to capture.
@@ -27,12 +40,13 @@ class Solver:
             print('Invalid action, please try again.')
             return self.prompt()
 
-        if (checkAction(self, userAction)):
-            return self.prompt()
+        self.checkAction(userAction)
 
     def startSolving(self):
-        if not self.getSolvingWindow():
-            return self.prompt()
+        # if not self.getSolvingWindow():
+        #     return self.prompt()
+        self.getSolvingWindow()
+        self.prompt()
 
     def getSolvingWindow(self):
         self.printMouseInstruction()
@@ -45,20 +59,22 @@ class Solver:
     def printMouseInstruction(self):
         print(mousePositionInstructions)
 
+    def checkAction(self, action: str):
+        match action:
+            case 'help' | 'h':
+                print("*" * 30)
+                print(helpMenu)
+                print("*" * 30)
 
-def checkAction(self: Solver, action: str) -> bool:
-    match action:
-        case 'start' | 's':
-            self.startSolving()
-            return False
+            case 'mousepos' | 'mp':
+                self.startSolving()
+                return
 
-        case 'help':
-            print(helpMenu)
+            case 'start' | 's':
+                ItemFinder(self)
+                return
 
-        case 'test':
-            print('lmao')
+            case _:
+                print('Invalid action, please try again.')
 
-        case _:
-            print('Invalid action, please try again.')
-
-    return True
+        self.prompt()
