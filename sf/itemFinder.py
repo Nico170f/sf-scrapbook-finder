@@ -3,6 +3,8 @@ import cv2
 import numpy
 import win32com.client as comclt
 import time
+
+from sf.image import ImageProcess
 # https://github.com/jitendrasb24/Motion-Detection-OpenCV
 
 wsh = comclt.Dispatch("WScript.Shell")
@@ -10,16 +12,17 @@ wsh = comclt.Dispatch("WScript.Shell")
 
 class ItemFinder:
     framesToCheck = 5
-    characterChangeDelay = 400
+    characterChangeDelay = 1000
     applicationID = "8224"
+    windowTitle = 'Scapbook Finder - Output'
 
-    def __init__(self):
-        print('Starting video capture...')
-
+    def __init__(self, solver):
+        self.solver = solver
         self.detectionCounter = 0
-        self.movedTimer = self.getMillis() + 500
+        self.movedTimer = 0  # self.getMillis() + 1000
         self.itemDetected = False
         self.windowOpen = False
+
         self.startVideoCapture()
 
     def getMillis(self, extraDelay=0):
@@ -49,7 +52,7 @@ class ItemFinder:
                 self.incrementDetectionCounter(True)
         else:
             self.itemDetected = True
-            print("Item has been detected!")
+            print('Item has been detected. Press "J" to continue.')
 
     def setMovementTimer(self, extraDelay=0):
         print('Waiting for timer...')
@@ -67,17 +70,37 @@ class ItemFinder:
         wsh.SendKeys("{DOWN}", 0)
 
     def startVideoCapture(self):
+        print('Starting video capture...')
+
         videoCapture = cv2.VideoCapture(0)
         ret, frame1 = videoCapture.read()
         ret, frame2 = videoCapture.read()
+        self.setMovementTimer(500)
 
         while videoCapture.isOpened():
+
             if self.itemDetected:
-                print('Item has been detected. Press "J" to continue.')
-                if cv2.waitKey(100) & 0xFF == ord("j"):
-                    self.moveToNextPlayer()
-                    self.setMovementTimer(500)
-                    self.itemDetected = False
+                if (cv2.getWindowProperty(self.windowTitle, cv2.WND_PROP_VISIBLE) < 1):
+                    break
+
+                imageStr = f'{self.getMillis()}.jpg'
+                # print(imageStr)
+                cv2.imwrite(f'output/{imageStr}', frame1)
+                ImageProcess(imageStr)
+                # return
+                self.moveToNextPlayer()
+                self.setMovementTimer(500)
+                self.itemDetected = False
+                # return
+
+                # if cv2.waitKey(50) & 0xFF == ord("q") or 0xFF == ord("j"):
+                #     return
+
+                # print('Item has been detected. Press "J" to continue.')
+                # if cv2.waitKey(500) & 0xFF == ord("j"):
+                #     self.moveToNextPlayer()
+                #     self.setMovementTimer(500)
+                #     self.itemDetected = False
             else:
 
                 contours = self.getMotionDifference(frame1, frame2)
@@ -96,15 +119,19 @@ class ItemFinder:
 
                         self.movementDetected(True)
 
-                cv2.imshow("Press Q to quit", frame1)
+                cv2.imshow(self.windowTitle, frame1)
                 frame1 = frame2
                 ret, frame2 = videoCapture.read()
 
                 if cv2.waitKey(50) & 0xFF == ord("q"):
                     break
 
+                if (cv2.getWindowProperty(self.windowTitle, cv2.WND_PROP_VISIBLE) < 1):
+                    break
+
         videoCapture.release()
         cv2.destroyAllWindows()
+        self.solver.prompt()
 
 
-itemFinder = ItemFinder()
+# itemFinder = ItemFinder('test')
