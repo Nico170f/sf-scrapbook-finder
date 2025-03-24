@@ -12,8 +12,8 @@ wsh = comclt.Dispatch("WScript.Shell")
 
 class ItemFinder:
     framesToCheck = 5
-    characterChangeDelay = 1000
-    applicationID = "8224"
+    characterChangeDelay = 600
+    applicationID = "29724"
     windowTitle = 'Scapbook Finder - Output'
 
     def __init__(self, solver):
